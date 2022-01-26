@@ -22,14 +22,19 @@ type IAMUser struct {
 
 // Config struct defines parameters where user input is necessary
 type Config struct {
-    Provider string `yaml:"provider"`
-	Credentials string `yaml:"credentials"`
 	Group string `yaml:"group"`
 	KeepHomeDir bool `yaml:"keephomedir"`
 	LogFile string `yaml:"logfile"`
-	Email string `yaml:"gsuiteadmin"`
-	Domain string `yaml:"oauthdomain"`
-	CustomAttributeKey string `yaml:"customattributekey"`
+    Provider string `yaml:"provider"`
+	ProviderOptions ProviderOptions `yaml:"provider-options"`
+}
+
+// ProviderOptions defines parameters for specified provider
+type ProviderOptions struct {
+    Credentials string `yaml:"credentials"`
+    CustomAttributeKey string `yaml:"customattributekey"`
+    Email string `yaml:"gsuiteadmin"`
+    Domain string `yaml:"oauthdomain"`
 }
 
 // Cfg Globally accessed Config struct
@@ -57,7 +62,7 @@ func main() {
 	globalLogger.Info("====== Start Log ======\n")
 	globalLogger.Info("IAM User Sync starting with configuration settings: Provider: %s | Group: %s | KeepHomeDir: %t | LogFile: %s\n", Cfg.Provider, Cfg.Group, Cfg.KeepHomeDir, Cfg.LogFile)
 	if Cfg.Provider == "GSUITE" {
-		globalLogger.Info("GSUITE configuration settings: Email: %s | Domain: %s | Custom Attribute Key: %s | Path To Credentials: %s\n", Cfg.Email, Cfg.Domain, Cfg.CustomAttributeKey, Cfg.Credentials)
+		globalLogger.Info("GSUITE configuration settings: Email: %s | Domain: %s | Custom Attribute Key: %s | Path To Credentials: %s\n", Cfg.ProviderOptions.Email, Cfg.ProviderOptions.Domain, Cfg.ProviderOptions.CustomAttributeKey, Cfg.ProviderOptions.Credentials)
 	}
 
 
@@ -241,20 +246,20 @@ func ProcessInput() error {
 
 	// gsuite config:
 	if *credentials != "" {
-		Cfg.Credentials = *credentials
+		Cfg.ProviderOptions.Credentials = *credentials
 	}
 	if *gsuiteAdminEmail != "" {
-		Cfg.Email = *gsuiteAdminEmail
+		Cfg.ProviderOptions.Email = *gsuiteAdminEmail
 	}
 	if *gsuiteOAuthDomain != "" {
-		Cfg.Domain = *gsuiteOAuthDomain
+		Cfg.ProviderOptions.Domain = *gsuiteOAuthDomain
 	}
 	if *customAttributeKey != "" {
-		Cfg.CustomAttributeKey = *customAttributeKey
+		Cfg.ProviderOptions.CustomAttributeKey = *customAttributeKey
 	}
 
 	// if IAM Provider is GSUITE, gsuiteadminemail must be set either from parameter or config
-	if (*provider == "GSUITE" && *gsuiteAdminEmail == "") || (Cfg.Provider == "GSUITE" && Cfg.Email == "") {
+	if (*provider == "GSUITE" && *gsuiteAdminEmail == "") || (Cfg.Provider == "GSUITE" && Cfg.ProviderOptions.Email == "") {
 		emailMissingError := errors.New("If the IAM provider is GSuite (Google Workspace) then you must supply the super admin user's email address that delegated the serviceaccount OAuth scopes.")
 		return emailMissingError
 	}
@@ -264,7 +269,7 @@ func ProcessInput() error {
 		providerMissingError := errors.New("IAM Provider must be set. Please use --provider GSUITE or set the value using --config /path/to/config.yml.")
 		return providerMissingError
 	}
-	if Cfg.Credentials == "" {
+	if Cfg.ProviderOptions.Credentials == "" {
 		credentialsMissingError := errors.New("IAM Provider service account credentials must be present. Please use --credentials ./credentials.json or set the value in config.yml.")
 		return credentialsMissingError
 	}
@@ -278,13 +283,13 @@ func ProcessInput() error {
 		Cfg.LogFile = "/var/log/iamusersync.log"
 		log.Printf("Log file path not specified. Using default: %s\n", Cfg.LogFile)
 	}
-	if Cfg.Domain == "" {
-		Cfg.Domain = strings.Split(Cfg.Email, "@")[1]
-		log.Printf("Using domain for user lookup: %s\n", Cfg.Domain)
+	if Cfg.ProviderOptions.Domain == "" {
+		Cfg.ProviderOptions.Domain = strings.Split(Cfg.ProviderOptions.Email, "@")[1]
+		log.Printf("Using domain for user lookup: %s\n", Cfg.ProviderOptions.Domain)
 	}
-	if Cfg.CustomAttributeKey == "" {
-		Cfg.CustomAttributeKey = "SSHKEY"
-		log.Printf("Gsuite User Custom Attribute Key not specified. Using default: %s\n", Cfg.CustomAttributeKey)
+	if Cfg.ProviderOptions.CustomAttributeKey == "" {
+		Cfg.ProviderOptions.CustomAttributeKey = "SSHKEY"
+		log.Printf("Gsuite User Custom Attribute Key not specified. Using default: %s\n", Cfg.ProviderOptions.CustomAttributeKey)
 	}
 
 	return nil
@@ -465,7 +470,7 @@ func PullUsersFromIAM() ([]IAMUser, error) {
 	p := strings.ToUpper(Cfg.Provider)
 	switch p {
 	case "GSUITE":
-		return PullGsuiteUsers(Cfg.Email, Cfg.Domain, Cfg.CustomAttributeKey)
+		return PullGsuiteUsers(Cfg.ProviderOptions.Email, Cfg.ProviderOptions.Domain, Cfg.ProviderOptions.CustomAttributeKey, Cfg.ProviderOptions.Credentials)
 	case "AWS":
 		return nil, nil
 	// additional providers coming soon
