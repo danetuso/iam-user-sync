@@ -54,9 +54,10 @@ func main() {
 	}
 
 	// Initialize Logging
-	globalLogger, err := NewFileLogger(Cfg.LogFile)
-	if err != nil {
-		log.Printf("Error while initializing logging: %v\n", err)
+	var logErr error
+	globalLogger, logErr = NewFileLogger(Cfg.LogFile)
+	if logErr != nil {
+		log.Printf("Error while initializing logging: %v\n", logErr)
 	}
 
 	globalLogger.Info("====== Start Log ======\n")
@@ -397,7 +398,7 @@ func CheckForUnsetConfig() error {
 	if Cfg.ProviderOptions.Credentials == "" {
 		credentialsMissingError := errors.New(
 			"IAM Provider service account credentials must be present. " +
-				"Please use --credentials <path> or set the value in config.yml.",
+				"Use --credentials <path> or set the value in config.yml.",
 		)
 		return credentialsMissingError
 	}
