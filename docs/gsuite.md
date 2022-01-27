@@ -3,9 +3,9 @@
 ## Google Workspaces Setup
 1. Log into your Google Workspaces admin account and navigate to your users: https://admin.google.com/ac/users
 2. Click the `More Options` Dropdown and select `Manage custom attributes`
-   ![Alt Text](https://github.com/danetuso/iam-user-sync/blob/main/manage_custom_attributes.png)
+   ![Custom Attributes](https://github.com/danetuso/iam-user-sync/blob/main/docs/resources/manage_custom_attributes.png)
 3. At the top right, click `Add Custom Attribute`
-   ![Alt Text](https://github.com/danetuso/iam-user-sync/tree/master/docs/resources/custom_field.png)
+   ![Custom Field](https://github.com/danetuso/iam-user-sync/blob/main/docs/resources/custom_field.png)
    - Take note of what you choose for the `Category` field as we will use it later. 
    - I use `SSHKEY` in this example. 
    - The `type` is set to `Text`.
@@ -26,7 +26,7 @@ In order to programmatically access your domain users, you must set up a Google 
 6. Select `Service Accounts` on the left, then `Create Service Account` at the top.
 7. Name it how you like, *(you can skip the following 2 fields for granting access)*.
 8. Click `Create and Continue` then click `Done`.
-   ![Alt Text](https://github.com/danetuso/iam-user-sync/tree/master/docs/resources/create_service_account.png)
+   ![Create Service Account](https://github.com/danetuso/iam-user-sync/blob/main/docs/resources/create_service_account.png)
 9. Select your new service account from the list and select the `Keys` tab at the top.
 10. Click `Add Key` with the key type set to JSON.
 11. Save the downloaded file as you'll need to upload this to each server along with the application.
